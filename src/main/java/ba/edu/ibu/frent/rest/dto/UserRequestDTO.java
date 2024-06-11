@@ -51,6 +51,7 @@ public class UserRequestDTO {
         user.setUsername(username);
         user.setPassword(password);
         user.setCreationDate(new Date());
+        user.setIsSuspended(false);
         return user;
     }
 

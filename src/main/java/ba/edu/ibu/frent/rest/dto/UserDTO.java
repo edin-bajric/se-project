@@ -18,6 +18,7 @@ public class UserDTO {
     private Set<String> cart;
     private Set<String> wishlist;
     private Date creationDate;
+    private boolean isSuspended;
 
     /**
      * Constructs an empty UserDTO.
@@ -39,6 +40,7 @@ public class UserDTO {
         this.cart = user.getCart();
         this.wishlist = user.getWishlist();
         this.creationDate = user.getCreationDate();
+        this.isSuspended = user.getIsSuspended();
     }
 
     public String getId() {
@@ -103,5 +105,13 @@ public class UserDTO {
 
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public boolean getIsSuspended() {
+        return isSuspended;
+    }
+
+    public void setSuspended(boolean isSuspended) {
+        this.isSuspended = isSuspended;
     }
 }

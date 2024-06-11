@@ -205,4 +205,30 @@ public class UserController {
         double cartTotal = userService.getCartTotal(username);
         return ResponseEntity.ok(cartTotal);
     }
+
+    /**
+     * Suspend a user.
+     *
+     * @param id The ID of the user to be suspended.
+     * @return ResponseEntity containing the updated UserDTO.
+     */
+    @RequestMapping(method = RequestMethod.PATCH, path = "/suspend/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserDTO> suspendUser(@PathVariable String id) {
+        UserDTO updatedUser = userService.suspendUser(id);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    /**
+     * Unsuspend a user.
+     *
+     * @param id The ID of the user to be unsuspended.
+     * @return ResponseEntity containing the updated UserDTO.
+     */
+    @RequestMapping(method = RequestMethod.PATCH, path = "/unsuspend/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserDTO> unsuspendUser(@PathVariable String id) {
+        UserDTO updatedUser = userService.unsuspendUser(id);
+        return ResponseEntity.ok(updatedUser);
+    }
 }

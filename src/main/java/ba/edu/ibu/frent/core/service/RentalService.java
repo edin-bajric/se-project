@@ -3,8 +3,10 @@ package ba.edu.ibu.frent.core.service;
 import ba.edu.ibu.frent.core.exceptions.repository.ResourceNotFoundException;
 import ba.edu.ibu.frent.core.model.Movie;
 import ba.edu.ibu.frent.core.model.Rental;
+import ba.edu.ibu.frent.core.model.User;
 import ba.edu.ibu.frent.core.repository.MovieRepository;
 import ba.edu.ibu.frent.core.repository.RentalRepository;
+import ba.edu.ibu.frent.core.repository.UserRepository;
 import ba.edu.ibu.frent.rest.dto.RentalDTO;
 import ba.edu.ibu.frent.rest.dto.RentalRequestDTO;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -30,6 +32,7 @@ public class RentalService {
     private final MovieRepository movieRepository;
     private final MongoTemplate mongoTemplate;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     /**
      * Constructor for RentalService.
@@ -38,12 +41,14 @@ public class RentalService {
      * @param movieRepository      The repository for managing movies.
      * @param mongoTemplate        The MongoDB template for advanced queries.
      * @param notificationService  The service for handling notifications.
+     * @param userRepository        The repository for managing users.
      */
-    public RentalService(RentalRepository rentalRepository, MovieRepository movieRepository, MongoTemplate mongoTemplate, NotificationService notificationService) {
+    public RentalService(RentalRepository rentalRepository, MovieRepository movieRepository, MongoTemplate mongoTemplate, NotificationService notificationService, UserRepository userRepository) {
         this.rentalRepository = rentalRepository;
         this.movieRepository = movieRepository;
         this.mongoTemplate = mongoTemplate;
         this.notificationService = notificationService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -336,5 +341,43 @@ public class RentalService {
         }
 
         return totalSpent;
+    }
+
+    /**
+     * Get the total amount spent on rentals by a specific user.
+     *
+     * @param id The ID of the user.
+     * @return The total amount spent on rentals.
+     */
+    public double getTotalSpentOnRentalsById(String id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User with ID " + id + " not found.");
+        }
+        List<RentalDTO> rentals = getRentalsForUser(userOptional.get().getUsername());
+        double totalSpent = 0;
+        for (RentalDTO rental : rentals) {
+            totalSpent += rental.getRentalPrice();
+        }
+
+        return totalSpent;
+    }
+
+    /**
+     * Get all rentals for a specific user by user ID.
+     *
+     * @param userId The ID of the user.
+     * @return List of RentalDTOs representing all rentals for the user.
+     * @throws ResourceNotFoundException If the user with the given ID does not exist.
+     */
+    public List<RentalDTO> getRentalsForUserByUserId(String userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User with ID " + userId + " not found.");
+        }
+        List<Rental> rentals = rentalRepository.findAllByUsername(userOptional.get().getUsername());
+        return rentals.stream()
+                .map(RentalDTO::new)
+                .collect(toList());
     }
 }

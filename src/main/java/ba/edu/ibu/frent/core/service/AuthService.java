@@ -69,6 +69,9 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(loginRequestDTO.getEmail(), loginRequestDTO.getPassword()));
         User user = userRepository.findByEmail(loginRequestDTO.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("This user does not exist."));
+        if (user.getIsSuspended()) {
+            throw new ResourceNotFoundException("This user is suspended.");
+        }
         String jwt = jwtService.generateToken(user);
 
         return new LoginDTO(jwt);

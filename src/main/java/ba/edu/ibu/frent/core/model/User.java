@@ -12,7 +12,7 @@ import java.util.*;
 /**
  * Represents a user in the system.
  * Each user has a unique identifier, user type, first name, last name, email,
- * username, password, shopping cart, wishlist, and creation date.
+ * username, password, shopping cart, wishlist, creation date, and suspended status.
  */
 @Document
 public class User implements UserDetails {
@@ -27,6 +27,7 @@ public class User implements UserDetails {
     private Set<String> cart = new HashSet<>();
     private Set<String> wishlist = new HashSet<>();
     private Date creationDate = new Date();
+    private boolean isSuspended;
 
     public String getId() {
         return id;
@@ -106,6 +107,14 @@ public class User implements UserDetails {
 
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public boolean getIsSuspended() {
+        return isSuspended;
+    }
+
+    public void setIsSuspended(boolean isSuspended) {
+        this.isSuspended = isSuspended;
     }
 
     @Override

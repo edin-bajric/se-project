@@ -289,4 +289,16 @@ public class MovieService {
         }
         return text.toLowerCase().contains(substring.toLowerCase());
     }
+
+    /**
+     * Get a list of all movies.
+     * @return List of MovieDTO representing all movies.
+     */
+    public List<MovieDTO> getAllMovies () {
+        List<Movie> movies = movieRepository.findAll();
+        Collections.reverse(movies);
+        return movies.stream()
+                .map(MovieDTO::new)
+                .collect(Collectors.toList());
+    }
 }
