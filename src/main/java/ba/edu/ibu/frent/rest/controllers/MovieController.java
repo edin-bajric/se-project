@@ -153,5 +153,15 @@ public class MovieController {
         MovieDTO updatedMovie = movieService.revertPrice(id, oldPrice);
         return new ResponseEntity<>(updatedMovie, HttpStatus.OK);
     }
+
+    /**
+     * Retrieves a list of all movies.
+     * @return ResponseEntity with a list of MovieDTOs.
+     */
+    @RequestMapping(method = RequestMethod.GET, path = "/allMovies")
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    public ResponseEntity<List<MovieDTO>> getAllMovies() {
+        return ResponseEntity.ok(movieService.getAllMovies());
+    }
 }
 
