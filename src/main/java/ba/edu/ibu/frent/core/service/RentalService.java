@@ -1,5 +1,6 @@
 package ba.edu.ibu.frent.core.service;
 
+import ba.edu.ibu.frent.api.impl.mailsender.MailgunSender;
 import ba.edu.ibu.frent.core.exceptions.repository.ResourceNotFoundException;
 import ba.edu.ibu.frent.core.model.Movie;
 import ba.edu.ibu.frent.core.model.Rental;
@@ -33,6 +34,7 @@ public class RentalService {
     private final MongoTemplate mongoTemplate;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final MailgunSender mailgunSender;
 
     /**
      * Constructor for RentalService.
@@ -41,14 +43,16 @@ public class RentalService {
      * @param movieRepository      The repository for managing movies.
      * @param mongoTemplate        The MongoDB template for advanced queries.
      * @param notificationService  The service for handling notifications.
-     * @param userRepository        The repository for managing users.
+     * @param userRepository       The repository for managing users.
+     * @param mailgunSender        The service for sending emails.
      */
-    public RentalService(RentalRepository rentalRepository, MovieRepository movieRepository, MongoTemplate mongoTemplate, NotificationService notificationService, UserRepository userRepository) {
+    public RentalService(RentalRepository rentalRepository, MovieRepository movieRepository, MongoTemplate mongoTemplate, NotificationService notificationService, UserRepository userRepository, MailgunSender mailgunSender) {
         this.rentalRepository = rentalRepository;
         this.movieRepository = movieRepository;
         this.mongoTemplate = mongoTemplate;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
+        this.mailgunSender = mailgunSender;
     }
 
     /**
@@ -240,6 +244,8 @@ public class RentalService {
      */
     public void checkDueDatesAndSendWarnings() {
         LocalDate today = LocalDate.now();
+        LocalDate upcomingDueDate = today.plusDays(1);
+        List<String> emails = userRepository.findEmailsByOverdueOrUpcomingDueRentals(today, upcomingDueDate);
         List<Rental> overdueRentals = getOverdueRentals(today);
         for (Rental rental : overdueRentals) {
             sendOverdueWarning(rental);
@@ -247,6 +253,11 @@ public class RentalService {
         List<Rental> upcomingDueRentals = getUpcomingDueRentals(today, 3, 2, 1);
         for (Rental rental : upcomingDueRentals) {
             sendUpcomingDueWarning(rental);
+        }
+        if (!emails.isEmpty()) {
+            String message = "Hello! This is a reminder to return your rentals on time. Thank you!";
+            String subject = "Frent Rental Reminder";
+            mailgunSender.send(emails, subject, message);
         }
     }
 

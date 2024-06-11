@@ -19,6 +19,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Configuration class for security-related settings.
@@ -29,10 +34,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfiguration {
 
     @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private UserService userService;
 
     @Autowired
-    private UserService userService;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Configures the security filters and policies.
@@ -44,8 +49,6 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors() // Enable CORS
-                .and()
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.GET, "/api/movies/**").permitAll()
                         .requestMatchers("/api/movies/**").authenticated()
@@ -56,7 +59,28 @@ public class SecurityConfiguration {
                         manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // CORS configuration
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+
         return http.build();
+    }
+
+    /**
+     * Bean definition for the CORS configuration source.
+     *
+     * @return The CorsConfigurationSource instance.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("https://frent-ui.onrender.com")); // Allow the UI URL
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     /**
@@ -95,4 +119,3 @@ public class SecurityConfiguration {
         return config.getAuthenticationManager();
     }
 }
-

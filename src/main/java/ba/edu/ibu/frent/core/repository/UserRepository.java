@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,4 +72,14 @@ public interface UserRepository extends MongoRepository<User, String> {
      */
     @Query(value = "{'wishlist': ?0}", fields = "{'email': 1, '_id': 0}")
     List<String> findEmailsByWishlistContaining(String id);
+
+    /**
+     * Find emails of users with overdue or upcoming due rentals.
+     *
+     * @param today The current date.
+     * @param upcomingDueDate The number of days to check for upcoming due rentals.
+     * @return A list of emails of users with overdue or upcoming due rentals.
+     */
+    @Query(value = "{ 'rentals': { $elemMatch: { $or: [ { 'dueDate': { $lt: ?0 }, 'returnDate': null }, { 'dueDate': { $gte: ?0, $lte: ?1 }, 'returnDate': null } ] } } }", fields = "{'email': 1, '_id': 0}")
+    List<String> findEmailsByOverdueOrUpcomingDueRentals(LocalDate today, LocalDate upcomingDueDate);
 }
